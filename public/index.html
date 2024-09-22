@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="
+    https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js
+    "></script>
+    <link
+      href="
+    https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css
+    "
+      rel="stylesheet"
+    />
+    <title>ISS GEOLOCATION</title>
+    <style>
+      #map {
+        height: 700px;
+        margin: 0px;
+        padding: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 style="text-align: center">Where Is The ISS?</h1>
+    <div id="map"></div>
+    <p>
+      latitude: <span id="lat"></span><br />
+      longitude: <span id="long"></span>
+    </p>
+    <script>
+      let apiUrl = "https://api.wheretheiss.at/v1/satellites/25544";
+      let displayLat = document.getElementById("lat");
+      let displayLong = document.getElementById("long");
+      const map = L.map("map", {
+        minZoom: 2,
+        maxZoom: 10,
+      });
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+
+      getIss();
+      async function getIss() {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        const { latitude, longitude } = data;
+        map.setView([latitude, longitude], 2);
+
+        let markerIcon = L.icon({
+          iconUrl: "/iss-transparent.png",
+          iconSize: [50, 50],
+        });
+
+        let marker = L.marker([latitude, longitude], {
+          icon: markerIcon,
+        }).addTo(map);
+
+        setInterval(async function () {
+          let response = await fetch(apiUrl);
+          let data = await response.json();
+          let { latitude, longitude } = data;
+          console.log(latitude, longitude);
+          displayLat.textContent = latitude;
+          displayLong.innerText = longitude;
+          console.log(data);
+          // Remove the previous marker before adding a new one
+          map.removeLayer(marker);
+
+          marker = L.marker([latitude, longitude], { icon: markerIcon }).addTo(
+            map
+          );
+        }, 1000);
+      }
+      /*async function getIss() {
+  const response = await fetch(apiUrl);
+  const data = await response.json();
+  const { latitude, longitude } = data;
+  displayLat.textContent = latitude;
+  displayLong.innerText = longitude;
+  map.setView([latitude, longitude], 2);
+
+  let markerIcon = L.icon({
+    iconUrl: "/iss-transparent.png",
+    iconSize: [50, 50],
+  });
+
+  setInterval(async function () {
+    setTimeout(() => {
+      L.removeLayer(markerIcon);
+    }, 1000);
+    let response = await fetch(apiUrl);
+    let data = await response.json();
+    let { latitude, longitude } = data;
+    L.marker([latitude, longitude], { icon: markerIcon }).addTo(map);
+  }, 1000);
+}*/
+    </script>
+  </body>
+</html>
